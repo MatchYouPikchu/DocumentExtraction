@@ -1,7 +1,9 @@
-from src.models.schemas import DocumentType
+from src.models.schemas import DocumentType, ClassificationResult
 from src.models.prompts import PromptManager
 from src.services.llm_client import LLMClient
 import PIL.Image
+import json
+from typing import Tuple
 
 class ClassificationService:
     """
@@ -10,22 +12,23 @@ class ClassificationService:
     def __init__(self):
         self.llm_client = LLMClient()
 
-    def classify_document(self, image: PIL.Image.Image) -> DocumentType:
-        prompt = PromptManager.get_classification_prompt()
+    def classify_document(self, image: PIL.Image.Image) -> Tuple[DocumentType, str]:
+        prompt, schema = PromptManager.get_classification_config()
         
         try:
-            response = self.llm_client.generate_text(prompt, image)
-            result = response.strip().lower()
+            # Use structured output generation
+            json_str = self.llm_client.generate_json(
+                prompt=prompt, 
+                image=image, 
+                response_schema=schema
+            )
             
-            if "receipt" in result:
-                return DocumentType.RECEIPT
-            elif "invoice" in result:
-                return DocumentType.INVOICE
-            elif "id_card" in result:
-                return DocumentType.ID_CARD
-            else:
-                return DocumentType.OTHER
+            # Parse directly into Pydantic model
+            data = json.loads(json_str)
+            result = ClassificationResult(**data)
+            
+            return result.document_type, result.reasoning
                 
         except Exception as e:
             print(f"Error during classification: {e}")
-            return DocumentType.OTHER
+            return DocumentType.OTHER, f"Classification failed: {str(e)}"

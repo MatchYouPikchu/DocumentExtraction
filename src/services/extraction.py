@@ -1,4 +1,5 @@
 import json
+import sys
 from src.models.schemas import Receipt, ExtractedData, DocumentType
 from src.models.prompts import PromptManager
 from src.services.llm_client import LLMClient
@@ -33,5 +34,6 @@ class ExtractionService:
             return ExtractedData(document_type=doc_type)
             
         except Exception as e:
-            print(f"Extraction Error: {e}")
-            return ExtractedData(document_type=doc_type)
+            # Force print to stderr so it shows in terminal
+            print(f"Extraction Error: {e}", file=sys.stderr)
+            raise e

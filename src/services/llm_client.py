@@ -2,12 +2,13 @@ import google.generativeai as genai
 from src.config import Config
 import PIL.Image
 from typing import Optional, Any
+import sys
 
 class LLMClient:
     """
     Unified client for Google Gemini API calls.
     """
-    def __init__(self, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, model_name: str = "gemini-flash-latest"):
         if not Config.GEMINI_API_KEY:
             raise ValueError("GOOGLE_API_KEY not found in environment.")
         
@@ -23,14 +24,6 @@ class LLMClient:
     ) -> str:
         """
         Generate text response from the LLM.
-        
-        Args:
-            prompt: The text prompt
-            image: Optional image to include in the request
-            generation_config: Optional generation configuration
-            
-        Returns:
-            The generated text response
         """
         content = [prompt]
         if image:
@@ -41,7 +34,14 @@ class LLMClient:
             generation_config=generation_config
         )
         
-        return response.text
+        try:
+            return response.text
+        except Exception as e:
+            # Debugging: Print full response if text accessor fails
+            print(f"LLM Error: {e}", file=sys.stderr)
+            print(f"Response Feedback: {response.prompt_feedback}", file=sys.stderr)
+            print(f"Response Candidates: {response.candidates}", file=sys.stderr)
+            raise e
     
     def generate_json(
         self,
@@ -51,14 +51,6 @@ class LLMClient:
     ) -> str:
         """
         Generate JSON response from the LLM with structured output.
-        
-        Args:
-            prompt: The text prompt
-            image: Optional image to include
-            response_schema: Pydantic model class for structured output
-            
-        Returns:
-            JSON string response
         """
         generation_config = genai.types.GenerationConfig(
             response_mime_type="application/json",
@@ -66,4 +58,3 @@ class LLMClient:
         )
         
         return self.generate_text(prompt, image, generation_config)
-

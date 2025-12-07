@@ -1,22 +1,17 @@
-from src.models.schemas import DocumentType, Receipt
+from src.models.schemas import DocumentType, Receipt, ClassificationResult
 import json
 
 class PromptManager:
     @staticmethod
-    def get_classification_prompt() -> str:
+    def get_classification_config():
         """
-        Returns the prompt for document classification.
+        Returns (prompt_text, response_schema_class)
         """
-        return """
+        prompt = """
         Analyze this image and classify the document type.
-        Return ONLY one of the following exact strings:
-        - receipt
-        - invoice
-        - id_card
-        - other
-        
-        Do not add any other text or punctuation.
+        Provide a clear reasoning for your decision based on visual features.
         """
+        return prompt, ClassificationResult
     
     @staticmethod
     def get_extraction_config(doc_type: DocumentType):

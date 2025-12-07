@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 class DocumentType(str, Enum):
     RECEIPT = "receipt"
@@ -8,21 +8,26 @@ class DocumentType(str, Enum):
     ID_CARD = "id_card"
     OTHER = "other"
 
+class ClassificationResult(BaseModel):
+    document_type: DocumentType
+    reasoning: str
+
 class LineItem(BaseModel):
-    description: str = Field(..., description="Description of the item purchased")
-    quantity: Optional[float] = Field(None, description="Quantity of the item")
-    price: Optional[float] = Field(None, description="Unit price of the item")
-    total: Optional[float] = Field(None, description="Total line item price")
+    description: str
+    quantity: float
+    price: float
+    total: float
 
 class Receipt(BaseModel):
-    merchant_name: str = Field(..., description="Name of the merchant or store")
-    date: Optional[str] = Field(None, description="Date of purchase in YYYY-MM-DD format")
-    total_amount: float = Field(..., description="Total amount paid")
-    currency: str = Field("USD", description="Currency code (e.g. USD, EUR)")
-    items: List[LineItem] = Field(default_factory=list, description="List of items purchased")
+    merchant_name: str
+    merchant_address: str
+    merchant_phone: str
+    merchant_tax_id: str
+    date: str
+    total_amount: float
+    currency: str
+    items: List[LineItem]
     
 class ExtractedData(BaseModel):
     document_type: DocumentType
     receipt_data: Optional[Receipt] = None
-    # We can add other schemas here later (e.g., invoice_data)
-

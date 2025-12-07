@@ -1,0 +1,9 @@
+streamlit
+google-generativeai
+google-cloud-vision
+pydantic
+pdf2image
+pillow
+python-dotenv
+fuzzywuzzy
+python-Levenshtein
